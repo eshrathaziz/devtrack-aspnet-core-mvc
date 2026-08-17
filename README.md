@@ -101,9 +101,11 @@ Server-side model attributes validate required fields, email addresses, maximum 
 
 The repository contains `Tests/DevTrack.Tests`, an xUnit project covering permitted and prohibited task and defect transitions. The suite was run locally with **19 passing tests**. Build verification completed with `dotnet build DevTrack.sln` and no warnings or errors.
 
-## Screenshots
 
 Run the application against a configured SQL Server database, sign in, and use the dashboard, portfolio, requirements, sprint, task, bug, release, and reporting pages. Screenshots are intentionally not embedded because this environment did not have an executable SQL Server instance for a live authenticated session.
+## Author 
+Eshrath Aziz
+email: eshrathaziz@gmail.com
 
 ## Future enhancements
 
