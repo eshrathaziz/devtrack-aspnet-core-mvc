@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · DevTrack</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" asp-controller="Dashboard" asp-action="Index" aria-label="DevTrack dashboard"><span class="brand-mark"><span></span><i></i></span><span>DevTrack</span></a>
+            <div class="sidebar-label">Workspace</div>
+            <nav class="nav flex-column app-nav">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index"><span>01</span> Overview</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Projects" ? "active" : "")" asp-controller="Projects" asp-action="Index"><span>02</span> Projects</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Requirements" ? "active" : "")" asp-controller="Requirements" asp-action="Index"><span>03</span> Requirements</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Sprints" ? "active" : "")" asp-controller="Sprints" asp-action="Index"><span>04</span> Sprints</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tasks" ? "active" : "")" asp-controller="Tasks" asp-action="Index"><span>05</span> Tasks</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bugs" ? "active" : "")" asp-controller="Bugs" asp-action="Index"><span>06</span> Bugs</a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Releases" ? "active" : "")" asp-controller="Releases" asp-action="Index"><span>07</span> Releases</a>
+            </nav>
+            @if (User.IsInRole("Administrator") || User.IsInRole("Project Manager"))
+            {
+                <div class="sidebar-label mt-4">Coordination</div>
+                <nav class="nav flex-column app-nav">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Clients" ? "active" : "")" asp-controller="Clients" asp-action="Index"><span>08</span> Clients</a>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Developers" ? "active" : "")" asp-controller="Developers" asp-action="Index"><span>09</span> Workload</a>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index"><span>10</span> Reports</a>
+                </nav>
+            }
+            <div class="sidebar-foot"><span class="signal-dot"></span> Delivery system online</div>
+        </aside>
+        <main class="app-main">
+            <header class="topbar">
+                <button class="btn sidebar-toggle d-lg-none" type="button" aria-label="Toggle navigation" data-sidebar-toggle>Menu</button>
+                <div class="topbar-context"><span class="eyebrow">@ViewData["Section"]</span><span class="context-date">@DateTime.UtcNow.ToString("ddd, dd MMM yyyy")</span></div>
+                <div class="topbar-actions"><a class="quick-add" asp-controller="Requirements" asp-action="Create">+ Capture requirement</a><partial name="_LoginPartial" /></div>
+            </header>
+            <div class="content-wrap">
+                @if (TempData["Success"] is string success) { <div class="alert alert-success alert-dismissible fade show app-alert" role="alert">@success<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+                @if (TempData["Error"] is string error) { <div class="alert alert-danger alert-dismissible fade show app-alert" role="alert">@error<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div> }
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vp2MX0fS7QYegXGgOQfrlKkwD5kuWLwJYx8JdT2QtHtrWYa39AtqZxlv6kU4VBxt" crossorigin="anonymous"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

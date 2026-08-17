@@ -1,0 +1,18 @@
+﻿@using DevTrack.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    var profile = await UserManager.GetUserAsync(User);
+    <div class="d-flex align-items-center gap-3">
+        <a class="user-chip" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage account"><span class="user-initial">@((profile?.DisplayName ?? User.Identity?.Name ?? "U")[0])</span><span class="d-none d-lg-inline">@(profile?.DisplayName ?? "Account")</span></a>
+        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Dashboard")"><button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button></form>
+    </div>
+}
+else
+{
+    <div class="d-flex gap-2"><a class="btn btn-sm btn-outline-secondary" asp-area="Identity" asp-page="/Account/Login">Sign in</a><a class="btn btn-sm btn-signal" asp-area="Identity" asp-page="/Account/Register">Create account</a></div>
+}
+

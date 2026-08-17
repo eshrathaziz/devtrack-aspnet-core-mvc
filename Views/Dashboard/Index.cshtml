@@ -1,0 +1,43 @@
+@model DevTrack.ViewModels.DashboardViewModel
+@{ ViewData["Title"] = "Delivery overview"; ViewData["Section"] = "Overview"; }
+<div class="page-heading"><div><div class="breadcrumb-text">Delivery pulse</div><h1>Today’s delivery picture.</h1><p>Signals from active work, requirements, and release readiness.</p></div><a class="btn btn-signal" asp-controller="Tasks" asp-action="Create">Create task</a></div>
+<div class="metric-grid">
+    <div class="metric-card signal"><div class="metric-label">Active projects</div><div class="metric-value">@Model.ActiveProjects</div><div class="metric-note">Work in motion</div></div>
+    <div class="metric-card"><div class="metric-label">Open requirements</div><div class="metric-value">@Model.OpenRequirements</div><div class="metric-note">Need an owner or decision</div></div>
+    <div class="metric-card green"><div class="metric-label">Active sprints</div><div class="metric-value">@Model.ActiveSprints</div><div class="metric-note">@Model.SprintCompletionRate% completion rate</div></div>
+    <div class="metric-card"><div class="metric-label">Tasks in progress</div><div class="metric-value">@Model.TasksInProgress</div><div class="metric-note">@Model.UnassignedTasks unassigned</div></div>
+    <div class="metric-card danger"><div class="metric-label">Open bugs</div><div class="metric-value">@Model.OpenBugs</div><div class="metric-note">@Model.CriticalBugs critical items</div></div>
+    <div class="metric-card"><div class="metric-label">Completed tasks</div><div class="metric-value">@Model.CompletedTasks</div><div class="metric-note">Recorded across delivery work</div></div>
+    <div class="metric-card"><div class="metric-label">Critical bugs</div><div class="metric-value">@Model.CriticalBugs</div><div class="metric-note">Resolve before release</div></div>
+    <div class="metric-card green"><div class="metric-label">Sprint progress</div><div class="metric-value">@Model.SprintCompletionRate%</div><div class="metric-note">Done / active sprint tasks</div></div>
+</div>
+<div class="workspace-grid">
+    <div class="d-grid gap-3">
+        <section class="panel"><div class="delivery-canvas"><div class="canvas-copy"><div class="panel-kicker">Portfolio motion</div><h2>Keep requirements connected to releases.</h2><p>DevTrack makes priorities, handoffs, and delivery risks visible before they become surprises.</p></div><div class="orange-track"></div><div class="track-notes"><span>Analysis</span><span>Delivery</span><span>Verified release</span></div></div></section>
+        <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Priority work</div><h2 class="panel-title">Projects needing attention</h2></div><a class="btn btn-sm btn-quiet" asp-controller="Projects" asp-action="Index">All projects</a></div><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Project</th><th>Client</th><th>Priority</th><th>Progress</th></tr></thead><tbody>@foreach (var project in Model.PriorityProjects) { <tr><td><a asp-controller="Projects" asp-action="Details" asp-route-id="@project.Id">@project.Name</a><div class="record-meta">@project.ProjectManager</div></td><td>@project.Client?.CompanyName</td><td><span class="priority-chip @(project.Priority == Priority.Critical ? "critical" : "")">@project.Priority</span></td><td><div class="d-flex align-items-center gap-2"><div class="progress flex-grow-1"><div class="progress-bar" style="width:@project.Progress%"></div></div><small>@project.Progress%</small></div></td></tr>}</tbody></table></div></section>
+        <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Work queue</div><h2 class="panel-title">Next delivery moves</h2></div><a class="btn btn-sm btn-quiet" asp-controller="Tasks" asp-action="Index">Task board</a></div><div class="list-stack">@foreach (var task in Model.MyWork) { <div class="list-row"><span class="list-marker @(task.Priority == Priority.Critical ? "berry" : "")"></span><div><a class="list-title" asp-controller="Tasks" asp-action="Details" asp-route-id="@task.Id">@task.Title</a><span class="list-desc">@task.Project?.Name · @task.Developer?.DisplayName ?? "Unassigned"</span></div><span class="activity-time">@(task.DueDate?.ToString("dd MMM") ?? "No date")</span></div>}</div></section>
+    </div>
+    <div class="d-grid gap-3">
+        <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Portfolio signals</div><h2 class="panel-title">Status split</h2></div></div><div class="p-3">@foreach (var item in Model.ProjectsByStatus.OrderByDescending(i => i.Value)) { <div class="d-flex justify-content-between align-items-center py-2 border-bottom"><span>@item.Key</span><strong>@item.Value</strong></div>}</div></section>
+        <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Activity history</div><h2 class="panel-title">Recent record</h2></div></div><div class="list-stack">@foreach (var item in Model.RecentActivity.Take(6)) { <div class="list-row"><span class="list-marker green"></span><div><span class="list-title">@item.Action</span><span class="list-desc">@item.Description</span></div><span class="activity-time">@item.CreatedAtUtc.ToString("HH:mm")</span></div>}</div></section>
+    </div>
+</div>
+<div class="chart-grid">
+    <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Portfolio analysis</div><h2 class="panel-title">Projects by status</h2></div></div><div class="chart-body"><canvas id="projects-chart"></canvas></div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Flow analysis</div><h2 class="panel-title">Tasks by status</h2></div></div><div class="chart-body"><canvas id="tasks-chart"></canvas></div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Quality analysis</div><h2 class="panel-title">Bugs by severity</h2></div></div><div class="chart-body"><canvas id="bugs-chart"></canvas></div></section>
+    <section class="panel"><div class="panel-head"><div><div class="panel-kicker">Sprint progress</div><h2 class="panel-title">Active sprint completion</h2></div></div><div class="chart-body"><canvas id="sprint-chart"></canvas></div></section>
+</div>
+@section Scripts {
+    <script>
+        const chartColours = ['#f05a28', '#19222c', '#35705e', '#725468', '#d9d4ca', '#a74032'];
+        const projectData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ProjectsByStatus));
+        const taskData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TasksByStatus));
+        const bugData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BugsBySeverity));
+        const simpleChart = (id, data, type = 'bar') => new Chart(document.getElementById(id), { type, data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: chartColours, borderWidth: 0 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: type === 'doughnut', position: 'bottom', labels: { boxWidth: 9, usePointStyle: true } } }, scales: type === 'bar' ? { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eee9e0' } } } : {} } });
+        simpleChart('projects-chart', projectData, 'doughnut');
+        simpleChart('tasks-chart', taskData);
+        simpleChart('bugs-chart', bugData, 'doughnut');
+        new Chart(document.getElementById('sprint-chart'), { type: 'doughnut', data: { labels: ['Complete', 'Remaining'], datasets: [{ data: [@Model.SprintCompletionRate, @(100 - Model.SprintCompletionRate)], backgroundColor: ['#f05a28', '#e8e3da'], borderWidth: 0 }] }, options: { maintainAspectRatio: false, cutout: '72%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 9, usePointStyle: true } } } } });
+    </script>
+}
